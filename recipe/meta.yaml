@@ -1,33 +1,35 @@
 {% set name = "opentelemetry-instrumentation-logging" %}
-{% set version = "0.36b0" %}
+{% set version = "0.58b0" %}
 
 package:
   name: {{ name|lower }}
   version: {{ version }}
 
 source:
-  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/opentelemetry_instrumentation_logging-{{ version }}.tar.gz
-  sha256: 412d996a40912cd6b0a50beca98bb6a4c2e77dfe6546c4321c854dc66c8f3978
+  url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name.replace('-', '_')}}-{{ version }}.tar.gz
+  sha256: 1475e531cf0e1c03e1c42995fcf312767edaadfe335d04d1d3b27c9a8c8c7049
 
 build:
-  noarch: python
-  script: {{ PYTHON }} -m pip install . -vv
   number: 0
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  skip: true  # [py<39]
 
 requirements:
   host:
-    - python >=3.7
     - pip
+    - python
     - hatchling
   run:
-    - python >=3.7
-    - opentelemetry-api >=1.12,<2.dev0
-    - opentelemetry-instrumentation ==0.36b0
+    - python
+    - opentelemetry-api >=1.12,<2
+    - opentelemetry-instrumentation =={{ version }}
 
+# Tests disabled:
+# E   ModuleNotFoundError: No module named 'opentelemetry.test'
+# https://pypi.org/project/opentelemetry-test-utils, not in the main channel.
 test:
   imports:
-    - opentelemetry
-    - opentelemetry.instrumentation
+    - opentelemetry.instrumentation.logging
   commands:
     - pip check
   requires:
@@ -37,8 +39,15 @@ about:
   home: https://github.com/open-telemetry/opentelemetry-python-contrib/tree/master/instrumentation/opentelemetry-instrumentation-logging
   summary: OpenTelemetry Logging instrumentation
   license: Apache-2.0
+  license_family: Apache
   license_file: LICENSE
+  description: |
+    The OpenTelemetry logging integration automatically injects tracing context into log statements.
+  dev_url: https://github.com/open-telemetry/opentelemetry-python-contrib/tree/main/instrumentation/opentelemetry-instrumentation-logging
+  doc_url: https://opentelemetry-python-contrib.readthedocs.io/en/latest/instrumentation/logging/logging.html
 
 extra:
   recipe-maintainers:
     - mariusvniekerk
+  skip-lints:
+    - documentation_specifies_language
