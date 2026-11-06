@@ -1,5 +1,5 @@
 {% set name = "opentelemetry-instrumentation-logging" %}
-{% set version = "0.64b0" %}
+{% set version = "0.66b1" %}
 
 package:
   name: {{ name }}
@@ -7,12 +7,18 @@ package:
 
 source:
   url: https://pypi.org/packages/source/{{ name[0] }}/{{ name }}/{{ name.replace('-', '_')}}-{{ version }}.tar.gz
-  sha256: 6435b4d215bf8183e15f7e3416a10ebe1c411810d3411fbfc62667daae3abacb
+  sha256: 2250240ecb1fce36939f64eafd988832338684564fb4c7b401c9b9af0ee11d46
 
 build:
   number: 0
-  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation  # [not win]
+  script: {{ PYTHON }} -m pip install . -vv --no-deps --no-build-isolation --no-compile  # [win]
   skip: true  # [py<310]
+  # Skip compiling byte code to avoid extremely long paths in the conda package cache
+  # Due to the nested structure of this package and the long build string, environments
+  # can exceed the Windows path limit if installed into LOCALAPPDATA
+  skip_compile_pyc:  # [win]
+    - "*"            # [win]
 
 requirements:
   host:
@@ -27,7 +33,7 @@ requirements:
 
 # Tests disabled:
 # E   ModuleNotFoundError: No module named 'opentelemetry.test'
-# https://pypi.org/project/opentelemetry-test-utils, not in the main channel.
+# https://pypi.org/project/opentelemetry-test-utils, not in the main channel (still absent as of 0.66b1).
 test:
   imports:
     - opentelemetry.instrumentation.logging
